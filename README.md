@@ -12,7 +12,7 @@ An Agentic AI portfolio project that showcases multi-agent orchestration, safety
 
 ## 🧠 Agentic Workflow
 
-The flow diagram above (also under `Docs/img/Sales Agent Flow Diagram.drawio.png`) maps the full process:
+The flow diagram below maps the full process:
 
 - **User prompt + CSV upload** → `interface.py` collects the message, sender name, and recipients.
 - **Input guardrail** (`comprehensive_input_guardrail`) scans for prompt injection + PII. Fails route back to the user with detailed logging.
@@ -21,6 +21,8 @@ The flow diagram above (also under `Docs/img/Sales Agent Flow Diagram.drawio.png
 - **Output guardrail** (`comprehensive_output_guardrail`) ensures no secrets or credentials leak.
 - **Approval loop:** Users either regenerate or approve. Approval invokes the Email Manager agent, which polishes the draft and mail-merges placeholders per recipient before calling SendGrid.
 - **Email delivery:** Each recipient receives a personalized email with tokens replaced and HTML formatting applied, and the UI reports send status.
+
+![Sales Agent Flow](Docs/img/sales_agent_flow.png)
 
 ## 🖼️ UI Walkthrough
 
