@@ -19,7 +19,7 @@ from prompts import (
 )
 
 from models import NameCheckOutput, InputGuardrailOutput, OutputGuardrailOutput
-from email_service import send_html_email
+from email_service import send_html_email_tool
 from logger_config import setup_logger
 
 # Set up logger for this module
@@ -59,7 +59,7 @@ sales_agent1 = Agent(
     instructions=INSTRUCTIONS_PROFESSIONAL,
     model=BASE_MODEL1
 )
-logger.info("✓ Professional Sales Agent created (using tinyllama)")
+logger.info("✓ Professional Sales Agent created (using mistral:7b)")
 
 sales_agent2 = Agent(
     name="Humorous Sales Agent",
@@ -73,7 +73,7 @@ sales_agent3 = Agent(
     instructions=INSTRUCTIONS_CONCISE,
     model=BASE_MODEL3
 )
-logger.info("✓ Concise Sales Agent created (using granite3.1-dense:2b)")
+logger.info("✓ Concise Sales Agent created (using qwen2.5:3b)")
 
 
 # Create Sales Agent Tools with better descriptions
@@ -126,7 +126,7 @@ html_tool = html_converter.as_tool(
 
 # Email Manager Agent
 logger.info("Creating Email Manager agent...")
-email_tools = [subject_tool, html_tool, send_html_email]
+email_tools = [subject_tool, html_tool, send_html_email_tool]
 emailer_agent = Agent(
     name="Email Manager",
     instructions=EMAIL_MANAGER_INSTRUCTIONS,

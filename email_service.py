@@ -7,7 +7,7 @@ Author : Ben Walker (BenRWalker@icloud.com)
 # Modules
 import asyncio
 import os
-from typing import Dict, Optional
+from typing import Dict, Optional, Any
 
 import sendgrid
 from dotenv import load_dotenv
@@ -28,43 +28,62 @@ to_email: Optional[str] = os.environ.get('TO_EMAIL')
 
 logger.info(f"Email service configured - From: {from_email}, To: {to_email}")
 
-@function_tool
-async def send_html_email(subject: str, html_body: str) -> Dict[str, str]:
+async def send_html_email(subject: str, html_body: str, recipient_email: Optional[str] = None) -> Dict[str, Any]:
     """Send an email with the given subject and HTML body to all sales prospects."""
     logger.info(f"Attempting to send email with subject: {subject}")
     logger.debug(f"Email body length: {len(html_body)} characters")
     
-    sendgrid_api_key = os.environ.get('SENDGRID')
+    sendgrid_api_key = os.environ.get('SENDGRID') or os.environ.get('SENDGRID_API_KEY')
     if not sendgrid_api_key:
-        logger.error("SENDGRID API key not found in environment variables")
-        return {"status": "error", "message": "SENDGRID API key not found in environment variables"}
+        logger.error("SENDGRID / SENDGRID_API_KEY not found in environment variables")
+        return {"status": "error", "message": "SENDGRID / SENDGRID_API_KEY not configured"}
     
-    if not from_email or not to_email:
-        logger.error("FROM_EMAIL or TO_EMAIL not configured")
-        return {"status": "error", "message": "FROM_EMAIL or TO_EMAIL not configured"}
+    if not from_email:
+        logger.error("FROM_EMAIL not configured", extra={"from_email": from_email})
+        return {"status": "error", "message": "FROM_EMAIL not configured"}
+
+    target_recipient = recipient_email or to_email
+    if not target_recipient:
+        logger.error(
+            "No recipient email specified",
+            extra={"recipient_email": recipient_email, "default_to_email": to_email}
+        )
+        return {"status": "error", "message": "Recipient email not provided"}
     
-    def _send_email_request() -> int:
+    def _send_email_request() -> Dict[str, Any]:
         sg = sendgrid.SendGridAPIClient(api_key=sendgrid_api_key)
         from_email_obj = Email(from_email)
-        to_email_obj = To(to_email)
+        to_email_obj = To(target_recipient)
         content = Content("text/html", html_body)
         mail = Mail(from_email_obj, to_email_obj, subject, content)
         response = sg.client.mail.send.post(request_body=mail.get())
-        return response.status_code
+        return {
+            "status_code": response.status_code,
+            "headers": getattr(response, "headers", {}) or {}
+        }
     
     try:
-        status_code = await asyncio.to_thread(_send_email_request)
+        send_result = await asyncio.to_thread(_send_email_request)
+        status_code = send_result.get("status_code")
+        headers = send_result.get("headers", {})
+        message_id = headers.get("X-Message-Id") or headers.get("x-message-id")
         logger.info(
             "Email sent successfully",
             extra={
                 'subject': subject,
                 'status_code': status_code,
-                'to': to_email
+                'to': target_recipient,
+                'message_id': message_id
             }
         )
         return {
             "status": "success",
-            "status_code": status_code
+            "status_code": status_code,
+            "to": target_recipient,
+            "from": from_email,
+            "subject": subject,
+            "message_id": message_id,
+            "body_length": len(html_body)
         }
     except Exception as e:
         logger.error(
@@ -79,3 +98,7 @@ async def send_html_email(subject: str, html_body: str) -> Dict[str, str]:
             "status": "error",
             "message": str(e)
         }
+
+
+# Tool wrapper for agent usage
+send_html_email_tool = function_tool(send_html_email)

@@ -8,6 +8,7 @@ import re
 from typing import List
 from agents import input_guardrail, output_guardrail, GuardrailFunctionOutput
 from logger_config import setup_logger
+from models import InputGuardrailOutput, OutputGuardrailOutput
 
 logger = setup_logger('guardrails', use_json=True)
 
@@ -66,20 +67,52 @@ async def comprehensive_input_guardrail(ctx, agent, message):
     
     # Check for prompt injection
     has_injection, injection_issues = heuristic_injection_check(message)
-    
+    # Check for PII
+    has_pii, pii_issues, pii_confidence = heuristic_pii_check(message)
+
+    flagged_issues: List[str] = []
+    if has_injection:
+        flagged_issues.extend([f"prompt_injection:{pattern}" for pattern in injection_issues])
+    if has_pii:
+        flagged_issues.extend([f"pii:{pattern}" for pattern in pii_issues])
+
+    risk_score = 0.0
+    if has_injection:
+        risk_score = max(risk_score, 0.9)
+    if has_pii:
+        risk_score = max(risk_score, min(1.0, 0.6 + pii_confidence * 0.4))
+    if not flagged_issues:
+        risk_score = 0.1
+
+    guardrail_output = InputGuardrailOutput(
+        is_safe=not (has_injection or (has_pii and pii_confidence > 0.7)),
+        is_prompt_injection=has_injection,
+        contains_pii=has_pii,
+        is_off_topic=False,
+        is_harmful=False,
+        risk_score=risk_score,
+        flagged_issues=flagged_issues,
+        sanitized_input=None
+    )
+
+    logger.info(
+        "Input guardrail evaluation",
+        extra={
+            "issues": flagged_issues,
+            "risk_score": guardrail_output.risk_score
+        }
+    )
+
     if has_injection:
         logger.error(f"Input blocked - prompt injection detected: {injection_issues}")
         return GuardrailFunctionOutput(
             output_info={
                 "blocked": True,
                 "reason": "Prompt injection pattern detected",
-                "issues": injection_issues
+                "details": guardrail_output.model_dump()
             },
             tripwire_triggered=True
         )
-    
-    # Check for PII
-    has_pii, pii_issues, pii_confidence = heuristic_pii_check(message)
     
     if has_pii and pii_confidence > 0.7:
         logger.warning(f"PII detected: {pii_issues}")
@@ -87,8 +120,7 @@ async def comprehensive_input_guardrail(ctx, agent, message):
             output_info={
                 "blocked": True,
                 "reason": "PII detected in input",
-                "issues": pii_issues,
-                "confidence": pii_confidence
+                "details": guardrail_output.model_dump()
             },
             tripwire_triggered=True
         )
@@ -96,7 +128,10 @@ async def comprehensive_input_guardrail(ctx, agent, message):
     # Passed guardrail
     logger.info("Input passed guardrail checks")
     return GuardrailFunctionOutput(
-        output_info={"blocked": False, "issues": []},
+        output_info={
+            "blocked": False,
+            "details": guardrail_output.model_dump()
+        },
         tripwire_triggered=False
     )
 
@@ -120,13 +155,32 @@ async def comprehensive_output_guardrail(ctx, agent, output):
             detected_leaks.append(pattern)
             logger.error(f"Potential data leak detected: {pattern}")
     
+    guardrail_output = OutputGuardrailOutput(
+        is_safe=not detected_leaks,
+        contains_sensitive_data=bool(detected_leaks),
+        is_harmful_content=False,
+        is_hallucination=False,
+        is_off_topic=False,
+        toxicity_score=0.0,
+        flagged_issues=[f"leak:{pattern}" for pattern in detected_leaks],
+        redacted_output=None
+    )
+
+    logger.info(
+        "Output guardrail evaluation",
+        extra={
+            "issues": guardrail_output.flagged_issues,
+            "is_safe": guardrail_output.is_safe
+        }
+    )
+    
     if detected_leaks:
         logger.error(f"Output blocked - {len(detected_leaks)} leak patterns detected")
         return GuardrailFunctionOutput(
             output_info={
                 "blocked": True,
                 "reason": "Potential data leak detected",
-                "leaks": detected_leaks
+                "details": guardrail_output.model_dump()
             },
             tripwire_triggered=True
         )
@@ -134,6 +188,9 @@ async def comprehensive_output_guardrail(ctx, agent, output):
     # Passed guardrail
     logger.info("Output passed guardrail checks")
     return GuardrailFunctionOutput(
-        output_info={"blocked": False, "leaks": []},
+        output_info={
+            "blocked": False,
+            "details": guardrail_output.model_dump()
+        },
         tripwire_triggered=False
     )
