@@ -1,8 +1,6 @@
 # Sales Agent
 
-An AI portfolio project that showcases multi-agent orchestration, safety guardrails, CSV mail merge, and automated sending—powered by the official OpenAI Python SDK (pointed at a local Ollama endpoint by default).
-
-![Sales Agent Flow](Docs/img/Sales Agent Flow Diagram.drawio.png)
+An Agentic AI portfolio project that showcases multi-agent orchestration, safety guardrails, CSV mail merge, and automated sending—powered by the official OpenAI Python SDK (pointed at a local Ollama endpoint by default).
 
 ## ✨ Features
 
