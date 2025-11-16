@@ -1,0 +1,8 @@
+openai
+dotenv
+pydantic
+asyncio
+gradio
+sendgrid
+python-json-logger
+openai-agents
