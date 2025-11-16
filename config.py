@@ -18,13 +18,11 @@ def setup_env():
     load_dotenv()
     logger.info("Environment variables loaded from .env file")
 
-load_dotenv()
-
 # API Configuration
 LLM_API_KEY = os.environ.get('LLM_API_KEY')
 LLM_API_URL = os.environ.get('LLM_API_URL')
 
-logger.info("Configuration module initialized with base url: {LLM_URL}")
+logger.info(f"Configuration module initialized with base url: {LLM_API_URL}")
 
 # Create LLM client
 try:

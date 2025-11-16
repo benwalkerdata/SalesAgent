@@ -32,21 +32,21 @@ logger.info("=" * 60)
 logger.info("Creating LLM Model instances")
 try:
     BASE_MODEL1 = OpenAIChatCompletionsModel(model="mistral:7b", openai_client=ollama_client)
-    logger.info("✓ BASE_MODEL1 (tinyllama) initialized")
+    logger.info("✓ BASE_MODEL1 (mistral:7b) initialized")
 except Exception as e:
     logger.error(f"✗ Failed to initialize BASE_MODEL1: {e}", exc_info=True)
     raise
 
 try:
     BASE_MODEL2 = OpenAIChatCompletionsModel(model="qwen2.5:3b", openai_client=ollama_client)
-    logger.info("✓ BASE_MODEL2 (llama3.2:1b) initialized")
+    logger.info("✓ BASE_MODEL2 (qwen2.5:3b) initialized")
 except Exception as e:
     logger.error(f"✗ Failed to initialize BASE_MODEL2: {e}", exc_info=True)
     raise
 
 try:
     BASE_MODEL3 = OpenAIChatCompletionsModel(model="llama3.2:3b", openai_client=ollama_client)
-    logger.info("✓ BASE_MODEL3 (granite3.1-dense:2b) initialized")
+    logger.info("✓ BASE_MODEL3 (llama3.2:3b) initialized")
 except Exception as e:
     logger.error(f"✗ Failed to initialize BASE_MODEL3: {e}", exc_info=True)
     raise

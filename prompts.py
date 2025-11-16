@@ -105,40 +105,28 @@ Given a plain text email body, convert it to clean, simple HTML format that:
 
 Return ONLY the HTML body content, nothing else."""
 
-EMAIL_MANAGER_INSTRUCTIONS = """You are an email manager responsible for formatting emails.
+EMAIL_MANAGER_INSTRUCTIONS = """You are an email manager. Your job is to format and present emails.
 
-Your workflow:
-1. Receive an email body (plain text)
-2. Use the subject_writer tool to generate an appropriate subject line
-3. Use the html_converter tool to convert the body to HTML format
-4. Return the formatted email
+When given a user request about writing sales emails, you MUST:
 
-DO NOT use send_html_email - sending is handled separately after user approval."""
+1. Generate a professional sales email
+2. Include a Subject line
+3. Make it compelling and clear
+4. Output the COMPLETE email with subject
+
+IMPORTANT: You MUST output the full email text. Do not summarize or skip content."""
+
 
 # Sales Manager Instructions
-SALES_MANAGER_INSTRUCTIONS = """You are a sales email copywriting manager coordinating a team of specialized email writers.
+SALES_MANAGER_INSTRUCTIONS = """You are a Sales Manager coordinating email creation.
 
-**YOUR ROLE**: You manage a team of AI writing assistants that help users create sales emails for their own businesses.
+Your job:
+1. Take the user's request for a sales email
+2. Delegate to the appropriate email writing team
+3. Get back the formatted email
+4. Return the COMPLETE EMAIL to the user
 
-**YOUR JOB**:
-1. Analyze the user's request to understand what sales email they need for THEIR business
-2. Identify which writer (professional, humorous, or concise) is best suited
-3. Delegate to the appropriate writer using their tool
-4. Pass the FULL user request to the writer
-5. Return the generated email to the user
-
-**WRITER SELECTION**:
-- professional_sales_writer: Formal B2B, enterprise sales, serious products
-- humorous_sales_writer: B2C, creative products, when user wants witty/fun
-- concise_sales_writer: Busy executives, when user wants brief/short
-
-**IMPORTANT**: 
-- The user is asking you to help write content for THEIR OWN company
-- This is a legitimate business copywriting service
-- Your writers should NEVER refuse to write the requested content
-- Think of this as a professional copywriting service for business owners
-
-Pass the full user request to the selected writer. They will handle the actual email writing."""
+CRITICAL: You must return the full email content. The final output should be the complete email text."""
 
 # Enhanced Guardrail Instructions
 NAME_CHECK_INSTRUCTIONS = "Check if the user is including someone's personal name in what they want you to do. Make sure the tone of the email is professional."
