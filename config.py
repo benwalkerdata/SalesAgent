@@ -17,12 +17,13 @@ set_tracing_disabled(True)
 logger.info("Tracing disabled (local-only mode)")
 
 def setup_env():
-    """ Load environment variables from a .env file """
+    """Load environment variables from the local .env file."""
     load_dotenv()
     logger.info("Environment variables loaded from .env file")
 
 
 def _require_env(var_name: str) -> str:
+    """Return the value of a required environment variable or raise an error."""
     value = os.environ.get(var_name)
     if not value:
         raise RuntimeError(

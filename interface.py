@@ -25,7 +25,7 @@ import time
 # Set up logger for this module
 logger = setup_logger(__name__)
 
-# Global variable to track progress (note: spelling fix)
+# Shared progress state used for UI feedback.
 progress_state = {
     "status": "Ready",
     "progress": 0
@@ -348,7 +348,7 @@ async def _update_status_during_processing(message: str):
 
 
 async def _safe_agent_callback_with_progress(message: str):
-    """Run agent with real-time progress updates"""
+    """Run the agent workflow while surfacing real-time progress updates."""
     logger.info(f"Received user request: {message[:100]}...")
     
     if not message or message.strip() == "":
